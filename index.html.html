@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloom — Color Season Quiz ✿</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blush:#F9E8E0;--rose:#EAC4B8;--terracotta:#D98C78;--terra-dark:#C07060;
+  --sage:#B8CCBA;--sage-dark:#7A9E7E;--lavender:#D8D0E8;--butter:#F5EDD0;
+  --cream:#FDF8F3;--warm-white:#FFFAF6;--brown:#6B4C3B;--text:#4A3728;--muted:#9A7B6E;
+  --card-sh:0 8px 32px rgba(107,76,59,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--warm-white);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── blobs ── */
+.bg-blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.35;animation:blobFloat 8s ease-in-out infinite alternate;}
+.blob1{width:420px;height:420px;background:#F4C2B0;top:-80px;left:-80px;}
+.blob2{width:300px;height:300px;background:#D8D0E8;top:40%;right:-60px;animation-delay:2s;}
+.blob3{width:260px;height:260px;background:#B8CCBA;bottom:-60px;left:30%;animation-delay:4s;}
+.blob4{width:180px;height:180px;background:#F5EDD0;top:20%;left:55%;animation-delay:1s;}
+@keyframes blobFloat{from{transform:translateY(0) scale(1);}to{transform:translateY(30px) scale(1.05);}}
+#landing,#quiz,#result{position:relative;z-index:1;}
+
+/* ── LANDING ── */
+#landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;}
+.floaties{position:absolute;inset:0;pointer-events:none;}
+.floatie{position:absolute;font-size:1.6rem;animation:floatSpin 6s ease-in-out infinite;opacity:.7;}
+.floatie:nth-child(1){top:12%;left:8%;animation-delay:0s;font-size:2rem;}
+.floatie:nth-child(2){top:18%;right:10%;animation-delay:1s;}
+.floatie:nth-child(3){bottom:22%;left:12%;animation-delay:2s;font-size:1.4rem;}
+.floatie:nth-child(4){bottom:30%;right:8%;animation-delay:.5s;font-size:2.2rem;}
+.floatie:nth-child(5){top:55%;left:5%;animation-delay:3s;font-size:1.2rem;}
+.floatie:nth-child(6){top:40%;right:4%;animation-delay:1.5s;font-size:1.8rem;}
+@keyframes floatSpin{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-14px) rotate(8deg);}}
+
+.landing-pill{display:inline-flex;align-items:center;gap:6px;background:var(--blush);border:1.5px solid var(--rose);border-radius:99px;padding:6px 18px;font-size:.72rem;font-weight:700;letter-spacing:.08em;color:var(--terracotta);text-transform:uppercase;margin-bottom:28px;animation:popIn .6s cubic-bezier(.34,1.56,.64,1) both;}
+.landing-title{font-family:'Playfair Display',serif;font-size:clamp(3.2rem,10vw,6.5rem);font-weight:600;line-height:1.05;color:var(--text);margin-bottom:10px;animation:slideUp .7s .1s ease both;}
+.landing-title span{font-style:italic;color:var(--terracotta);}
+.landing-sub{font-size:1.05rem;color:var(--muted);font-weight:400;margin-bottom:40px;max-width:400px;line-height:1.7;animation:slideUp .7s .2s ease both;}
+
+/* returning user banner */
+.returning-banner{display:none;align-items:center;gap:14px;background:rgba(255,255,255,.9);border:1.5px solid var(--rose);border-radius:20px;padding:16px 22px;margin-bottom:28px;max-width:420px;animation:slideUp .6s ease both;}
+.returning-banner.show{display:flex;}
+.rb-icon{font-size:1.8rem;}
+.rb-text{text-align:left;}
+.rb-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);}
+.rb-season{font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;color:var(--terracotta);}
+.rb-btn{background:var(--terracotta);color:white;border:none;border-radius:99px;padding:8px 18px;font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.rb-btn:hover{background:var(--terra-dark);}
+
+.stat-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;animation:slideUp .7s .3s ease both;}
+.stat-card{background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border:1.5px solid var(--rose);border-radius:16px;padding:14px 22px;text-align:center;}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.6rem;font-style:italic;color:var(--terracotta);line-height:1;}
+.stat-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:2px;}
+
+.begin-btn{display:inline-flex;align-items:center;gap:10px;background:var(--terracotta);color:white;border:none;border-radius:99px;padding:18px 42px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .25s cubic-bezier(.34,1.4,.64,1);box-shadow:0 8px 24px rgba(217,140,120,.4);animation:popIn .6s .4s cubic-bezier(.34,1.56,.64,1) both;}
+.begin-btn:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 14px 36px rgba(217,140,120,.5);}
+.begin-btn:active{transform:translateY(0) scale(.98);}
+.btn-arrow{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:rgba(255,255,255,.25);border-radius:50%;font-size:.9rem;}
+
+/* ── QUIZ ── */
+#quiz{display:none;min-height:100vh;padding:48px 20px 60px;}
+.quiz-wrap{max-width:720px;margin:0 auto;}
+.quiz-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.quiz-brand{font-family:'Playfair Display',serif;font-style:italic;font-size:1.3rem;color:var(--terracotta);}
+.step-badge{background:var(--blush);border:1.5px solid var(--rose);border-radius:99px;padding:5px 16px;font-size:.72rem;font-weight:700;color:var(--terracotta);}
+
+/* animated progress bar */
+.progress-track{height:6px;background:#EAD8CE;border-radius:99px;margin-bottom:10px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--rose),var(--terracotta));border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);width:33%;}
+.progress-dots{display:flex;gap:10px;justify-content:center;margin-bottom:28px;}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--rose);transition:all .4s cubic-bezier(.34,1.56,.64,1);}
+.dot.active{background:var(--terracotta);transform:scale(1.4);}
+.dot.done{background:var(--sage-dark);transform:scale(1.1);}
+
+.question-card{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border:1.5px solid rgba(234,196,184,.5);border-radius:28px;padding:40px 36px 36px;box-shadow:var(--card-sh);animation:slideUp .5s ease both;}
+.q-tag{display:inline-flex;align-items:center;gap:6px;background:var(--butter);border-radius:99px;padding:5px 14px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--brown);margin-bottom:18px;}
+.q-title{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:600;line-height:1.25;margin-bottom:8px;}
+.q-title em{font-style:italic;color:var(--terracotta);}
+.q-sub{font-size:.85rem;color:var(--muted);line-height:1.7;margin-bottom:32px;}
+
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px;}
+.opt-card{background:var(--warm-white);border:2px solid #EAD8CE;border-radius:20px;padding:20px 18px;cursor:pointer;text-align:left;transition:all .25s cubic-bezier(.34,1.3,.64,1);position:relative;overflow:hidden;}
+.opt-card:hover{border-color:var(--terracotta);transform:translateY(-3px);box-shadow:0 10px 28px rgba(217,140,120,.15);}
+.opt-card.selected{border-color:var(--terracotta);background:linear-gradient(135deg,#FDF0EB,#FAE8E0);transform:translateY(-3px);box-shadow:0 10px 28px rgba(217,140,120,.2);}
+.opt-card.selected::after{content:'✓';position:absolute;top:12px;right:14px;width:24px;height:24px;background:var(--terracotta);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;}
+.opt-swatch{height:8px;border-radius:99px;margin-bottom:14px;}
+.opt-emoji{font-size:1.4rem;margin-bottom:8px;display:block;}
+.opt-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:6px;display:block;}
+.opt-sub{font-size:.82rem;color:var(--muted);line-height:1.6;}
+
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:2px solid #EAD8CE;border-radius:99px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+.back-btn:hover{border-color:var(--terracotta);color:var(--terracotta);}
+.back-btn:disabled{opacity:.3;pointer-events:none;}
+.next-btn{display:inline-flex;align-items:center;gap:8px;background:var(--terracotta);color:white;border:none;border-radius:99px;padding:12px 30px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .25s cubic-bezier(.34,1.4,.64,1);box-shadow:0 6px 20px rgba(217,140,120,.35);}
+.next-btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 10px 28px rgba(217,140,120,.45);}
+.next-btn:disabled{opacity:.35;pointer-events:none;transform:none;box-shadow:none;}
+
+/* ── RESULT ── */
+#result{display:none;min-height:100vh;padding:48px 20px 80px;}
+.result-wrap{max-width:760px;margin:0 auto;}
+
+.result-hero{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border:1.5px solid rgba(234,196,184,.5);border-radius:28px;padding:44px 40px;text-align:center;box-shadow:var(--card-sh);margin-bottom:20px;animation:slideUp .6s ease both;}
+.result-icon{font-size:4rem;margin-bottom:16px;display:block;animation:popIn .5s .3s cubic-bezier(.34,1.56,.64,1) both;}
+.result-eyebrow{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);margin-bottom:10px;}
+.result-name{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,8vw,5rem);font-weight:600;line-height:1;color:var(--text);margin-bottom:6px;}
+.result-name em{font-style:italic;color:var(--terracotta);}
+.result-desc{font-size:.9rem;color:var(--muted);line-height:1.8;max-width:500px;margin:0 auto;}
+
+.section-card{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border:1.5px solid rgba(234,196,184,.4);border-radius:24px;padding:32px;margin-bottom:18px;box-shadow:var(--card-sh);animation:slideUp .5s ease both;}
+.section-label{display:flex;align-items:center;gap:8px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--terracotta);margin-bottom:22px;}
+.section-label::before{content:'';display:block;width:20px;height:2px;background:var(--terracotta);border-radius:99px;}
+
+.palette-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:14px;}
+.swatch-card{cursor:default;transition:transform .2s;}
+.swatch-card:hover{transform:translateY(-4px);}
+.swatch-color{height:72px;border-radius:16px;margin-bottom:8px;box-shadow:0 4px 14px rgba(0,0,0,.1);transition:box-shadow .2s;}
+.swatch-card:hover .swatch-color{box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.swatch-name{font-size:.6rem;font-weight:600;color:var(--muted);text-align:center;display:block;}
+.swatch-hex{font-size:.62rem;color:var(--text);text-align:center;display:block;margin-top:1px;}
+
+.avoid-row{display:flex;gap:12px;flex-wrap:wrap;}
+.avoid-pill{display:flex;align-items:center;gap:10px;background:#FDF4F2;border:1.5px solid #F0D8D0;border-radius:99px;padding:8px 16px 8px 10px;}
+.avoid-dot{width:28px;height:28px;border-radius:50%;flex-shrink:0;}
+.avoid-text{font-size:.68rem;font-weight:600;color:var(--muted);}
+
+/* accordion tips */
+.tip-item{border-bottom:1px solid rgba(234,196,184,.4);last-child{border:none;}}
+.tip-item:last-child{border:none;}
+.tip-header{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;list-style:none;transition:color .2s;}
+.tip-header:hover .tip-title{color:var(--terracotta);}
+.tip-dot{width:22px;height:22px;background:var(--blush);border:1.5px solid var(--rose);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;color:var(--terracotta);font-weight:700;}
+.tip-title{font-size:.88rem;font-weight:600;color:var(--text);flex:1;}
+.tip-arrow{font-size:.75rem;color:var(--muted);transition:transform .3s;flex-shrink:0;}
+details[open] .tip-arrow{transform:rotate(180deg);}
+.tip-body{padding:0 0 14px 34px;font-size:.82rem;color:var(--muted);line-height:1.7;}
+
+/* ── Outfit mood board card ── */
+.mood-card{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border:1.5px solid rgba(234,196,184,.4);border-radius:24px;padding:32px;margin-bottom:18px;box-shadow:var(--card-sh);animation:slideUp .5s .3s ease both;}
+.mood-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:10px;margin-top:4px;}
+.mood-img-wrap{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;}
+.mood-img-wrap:first-child{grid-column:1/3;height:220px;}
+.mood-img-wrap:not(:first-child){height:150px;}
+.mood-img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease;display:block;}
+.mood-img-wrap:hover .mood-img{transform:scale(1.05);}
+.mood-img-label{position:absolute;bottom:0;left:0;right:0;padding:10px 14px;background:linear-gradient(to top,rgba(74,55,40,.72),transparent);color:white;font-size:.68rem;font-weight:700;letter-spacing:.06em;}
+.mood-img-wrap.errored{background:var(--blush);height:150px;display:flex;align-items:center;justify-content:center;font-size:2rem;}
+
+/* ── Share card ── */
+.share-card{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border:1.5px solid rgba(234,196,184,.4);border-radius:24px;padding:32px;margin-bottom:18px;box-shadow:var(--card-sh);animation:slideUp .5s .4s ease both;}
+.share-preview{border-radius:18px;overflow:hidden;margin-bottom:20px;box-shadow:0 8px 32px rgba(107,76,59,.15);}
+.share-canvas-wrap{background:var(--blush);padding:32px 28px;text-align:center;position:relative;}
+.sc-icon{font-size:3rem;margin-bottom:8px;}
+.sc-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;color:var(--text);}
+.sc-title em{font-style:italic;color:var(--terracotta);}
+.sc-sub{font-size:.75rem;color:var(--muted);margin:4px 0 16px;}
+.sc-swatches{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.sc-swatch{width:36px;height:36px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+.sc-brand{font-size:.65rem;color:var(--muted);letter-spacing:.1em;font-weight:600;}
+.share-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.share-btn{display:inline-flex;align-items:center;gap:7px;border-radius:99px;padding:11px 22px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;border:2px solid;}
+.share-btn.copy{background:var(--terracotta);color:white;border-color:var(--terracotta);box-shadow:0 4px 14px rgba(217,140,120,.3);}
+.share-btn.copy:hover{background:var(--terra-dark);border-color:var(--terra-dark);}
+.share-btn.tweet{background:white;color:#1d9bf0;border-color:#1d9bf0;}
+.share-btn.tweet:hover{background:#e8f5fe;}
+
+.result-footer{text-align:center;margin-top:32px;animation:slideUp .5s .4s ease both;}
+.restart-btn{display:inline-flex;align-items:center;gap:8px;background:none;border:2px solid var(--rose);border-radius:99px;padding:13px 32px;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .25s;}
+.restart-btn:hover{border-color:var(--terracotta);color:var(--terracotta);background:var(--blush);}
+
+/* toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;border-radius:99px;padding:12px 24px;font-size:.82rem;font-weight:600;z-index:9999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+@keyframes popIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+
+@media(max-width:520px){
+  .options-grid{grid-template-columns:1fr;}
+  .question-card{padding:28px 20px;}
+  .result-hero{padding:32px 20px;}
+  .section-card,.ai-card,.share-card{padding:24px 18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-blobs">
+  <div class="blob blob1"></div><div class="blob blob2"></div>
+  <div class="blob blob3"></div><div class="blob blob4"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ══ LANDING ══ -->
+<section id="landing">
+  <div class="floaties">
+    <span class="floatie">🌸</span><span class="floatie">✨</span>
+    <span class="floatie">🌿</span><span class="floatie">🎨</span>
+    <span class="floatie">💐</span><span class="floatie">🌷</span>
+  </div>
+  <div class="landing-pill">✿ Free Color Quiz</div>
+
+  <!-- returning user banner (shown if localStorage has a result) -->
+  <div class="returning-banner" id="returning-banner">
+    <span class="rb-icon" id="rb-icon"></span>
+    <div class="rb-text">
+      <div class="rb-label">Welcome back!</div>
+      <div class="rb-season" id="rb-season"></div>
+    </div>
+    <button class="rb-btn" id="rb-view-btn">See My Results →</button>
+  </div>
+
+  <h1 class="landing-title">Find Your<br><span>Color Season</span></h1>
+  <p class="landing-sub">Answer 3 questions and discover the palette that was literally made for you 🎨</p>
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Questions</div></div>
+    <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Seasons</div></div>
+    <div class="stat-card"><div class="stat-num">~2 min</div><div class="stat-label">Duration</div></div>
+  </div>
+  <button class="begin-btn" onclick="startQuiz()">Start the Quiz <span class="btn-arrow">→</span></button>
+</section>
+
+<!-- ══ QUIZ ══ -->
+<section id="quiz">
+  <div class="quiz-wrap">
+    <div class="quiz-topbar">
+      <div class="quiz-brand">Bloom ✿</div>
+      <div class="step-badge" id="step-badge">Step 1 of 3</div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-dots">
+      <div class="dot active" id="dot0"></div>
+      <div class="dot" id="dot1"></div>
+      <div class="dot" id="dot2"></div>
+    </div>
+    <div id="question-container"></div>
+  </div>
+</section>
+
+<!-- ══ RESULT ══ -->
+<section id="result">
+  <div class="result-wrap" id="result-content"></div>
+</section>
+
+<script>
+/* ══════════════════════ DATA ══════════════════════ */
+const questions=[
+  {id:'undertone',tag:'🌿 Undertone',title:"What's your skin's <em>natural undertone?</em>",
+   sub:'Look at the veins on your inner wrist in natural daylight — and think about how gold vs. silver jewelry looks on you.',
+   options:[
+    {emoji:'☀️',title:'Warm & Golden',sub:'Veins look greenish. Gold jewelry is your best friend. Skin has peachy, yellow or golden tones.',swatch:'linear-gradient(90deg,#E8A87C,#F5C97A,#EDB870)',value:'warm'},
+    {emoji:'🌙',title:'Cool & Rosy',sub:'Veins look blue-purple. Silver suits you best. Skin has pink, rosy or bluish hints.',swatch:'linear-gradient(90deg,#C4A8C8,#D4B8D8,#E0C8E0)',value:'cool'},
+    {emoji:'☁️',title:'Neutral & Balanced',sub:'Veins look blue-green. Both metals work on you. Skin has no strong lean either way.',swatch:'linear-gradient(90deg,#C8B8A0,#D8C8B0,#C4B8A8)',value:'neutral'},
+    {emoji:'🌱',title:'Olive & Green-Gold',sub:'Veins look greenish. Skin has a subtle green-gold quality. Neither metal is perfect.',swatch:'linear-gradient(90deg,#8B9A6B,#A8A87A,#C4B48A)',value:'olive'}
+  ]},
+  {id:'contrast',tag:'🖤 Contrast',title:'How much <em>contrast</em> is in your features?',
+   sub:'Compare your hair color vs. your skin tone — are they close in value or very different?',
+   options:[
+    {emoji:'⚡',title:'High Contrast',sub:'Dark hair on fair skin, or light features on deep skin. You have a striking, defined look.',swatch:'linear-gradient(90deg,#1A1A1A 50%,#F5EDE0 50%)',value:'high'},
+    {emoji:'🌅',title:'Medium Contrast',sub:'Medium brown hair, medium skin — some variation but nothing extreme.',swatch:'linear-gradient(90deg,#7A5040,#A87A60,#D4A880)',value:'medium'},
+    {emoji:'🌫️',title:'Low Contrast',sub:'Hair and skin are close in depth. Features blend softly — like blonde on fair or dark on dark.',swatch:'linear-gradient(90deg,#C8B898,#D8C8A8,#E4D8C0)',value:'low'},
+    {emoji:'🌑',title:'Very High',sub:'Jet-black hair on very fair OR very deep skin. Extremely bold, dramatic natural coloring.',swatch:'linear-gradient(90deg,#080808 40%,#F2EDE4 60%)',value:'very_high'}
+  ]},
+  {id:'depth',tag:'🎨 Depth',title:"What's your overall <em>color depth?</em>",
+   sub:'Think about your hair, skin, and eyes together — how light or deep is your coloring as a whole?',
+   options:[
+    {emoji:'🤍',title:'Light & Fair',sub:'Pale or light skin, light eyes (blue/green/hazel), blonde or light brown hair.',swatch:'linear-gradient(90deg,#F4EDE0,#EDE4D8,#F8F2E8)',value:'light'},
+    {emoji:'🧡',title:'Medium Tone',sub:'Medium skin, brown or hazel eyes, medium brown or chestnut hair.',swatch:'linear-gradient(90deg,#C49060,#A87850,#B88465)',value:'medium'},
+    {emoji:'🤎',title:'Deep & Rich',sub:'Deep skin tone, very dark hair, dark brown or black eyes. Rich, saturated coloring.',swatch:'linear-gradient(90deg,#4A2E1A,#3A2010,#5A3820)',value:'deep'},
+    {emoji:'✨',title:'Mixed & Variable',sub:'Contrasting elements — like deep skin with light eyes, or light skin with very dark hair.',swatch:'linear-gradient(90deg,#1A1208 25%,#8A6040 55%,#E8DDD0 100%)',value:'mixed'}
+  ]}
+];
+
+const seasons={
+  spring:{name:'Spring',subtitle:'Warm & Luminous',icon:'🌸',
+    desc:"You radiate the warmth of a spring morning — golden, fresh, and glowing ✨ Your most flattering colors are clear and warm, like a field of wildflowers catching the morning light.",
+    palette:[{name:'Coral Bloom',hex:'#FF7F6E'},{name:'Warm Peach',hex:'#FFAD8E'},{name:'Golden Sun',hex:'#FFD166'},{name:'Leaf Green',hex:'#95C17B'},{name:'Sky Blue',hex:'#7EC8E3'},{name:'Ivory Cream',hex:'#FFF5E4'},{name:'Camel',hex:'#C9956B'},{name:'Soft Coral',hex:'#F4A261'}],
+    avoid:[{hex:'#6B4F9A',name:'Cool Purple'},{hex:'#2C4A7A',name:'Icy Blue'},{hex:'#8B0000',name:'Cool Burgundy'}],
+    tips:[
+      {title:'Go warm & clear',body:'Stick to warm, clear colors — avoid anything muddy, dusty, or grayed-out. Brightness is your friend.'},
+      {title:'Gold over silver',body:'Gold jewelry will always enhance your glow more than silver. Try yellow gold, rose gold, or warm bronze.'},
+      {title:'Warm whites only',body:'Ivory and warm white flatter you far more than stark, blue-toned whites. Think cream, not printer paper.'},
+      {title:'Your power colors',body:'Yellow-greens, warm teals, coral orange, and peach are your secret weapons. These make you literally glow.'},
+      {title:'Reds with warmth',body:'Try coral, salmon, and tomato reds instead of blue-based berry or wine reds — those can make you look washed out.'}
+    ]},
+  summer:{name:'Summer',subtitle:'Cool & Dreamy',icon:'🌊',
+    desc:"You embody the soft elegance of a hazy summer afternoon — cool, airy, and effortlessly chic 🌿 Dusty, muted, and powdery tones make you look like you've stepped right out of a Pinterest board.",
+    palette:[{name:'Dusty Rose',hex:'#D4A5A5'},{name:'Soft Lavender',hex:'#B8A8D0'},{name:'Ice Blue',hex:'#A8C4D8'},{name:'Muted Sage',hex:'#A0B898'},{name:'Rose Mauve',hex:'#C08890'},{name:'Pearl White',hex:'#F0EBF4'},{name:'Dusty Plum',hex:'#9A7090'},{name:'Soft Navy',hex:'#5A6E8A'}],
+    avoid:[{hex:'#FF6B00',name:'Warm Orange'},{hex:'#FFD700',name:'Gold Yellow'},{hex:'#FF4500',name:'Hot Red-Orange'}],
+    tips:[
+      {title:'Muted is your magic',body:'Choose dusty, muted, slightly grayed versions of every color. Avoid anything neon, saturated, or too warm.'},
+      {title:'Silver & rose gold',body:'Silver and rose gold jewelry complement your cool tones far better than yellow gold.'},
+      {title:'Rose-based whites',body:'Soft rose-toned whites and cool whites are better on you than ivory or warm cream, which can turn yellow.'},
+      {title:'Signature shades',body:'Cool rose, mauve, dusty lavender, and soft powder blue are the shades that make Summer types look ethereal.'},
+      {title:'Neutrals: navy & teal',body:'Navy and cool teal make better neutrals for you than warm brown or olive — those can look muddy.'}
+    ]},
+  autumn:{name:'Autumn',subtitle:'Warm & Earthy',icon:'🍂',
+    desc:"You carry the richness of an autumn forest — earthy, golden, and deeply warm 🌿 You look most alive in muted, rich tones that echo fallen leaves, terracotta, and aged copper.",
+    palette:[{name:'Burnt Sienna',hex:'#C9593C'},{name:'Terracotta',hex:'#C17A52'},{name:'Mustard Gold',hex:'#C9A24B'},{name:'Forest Green',hex:'#4A7050'},{name:'Warm Brown',hex:'#8B5E3C'},{name:'Rust',hex:'#B94E3A'},{name:'Olive',hex:'#8B8250'},{name:'Cognac',hex:'#A0522D'}],
+    avoid:[{hex:'#FFB6C1',name:'Baby Pink'},{hex:'#87CEEB',name:'Ice Blue'},{hex:'#DDA0DD',name:'Cool Plum'}],
+    tips:[
+      {title:'Earthy warmth only',body:"Muted, earthy warmth is your home base. Cool pastels and icy tones will wash you right out — avoid them."},
+      {title:'Antique gold jewelry',body:'Gold and bronze in hammered, matte or antique finishes are ideal. Avoid shiny or polished silver.'},
+      {title:'Cream over white',body:'Warm off-white and cream work far better on you than stark, blue-toned white. Think aged ivory.'},
+      {title:'Your power shades',body:'Rich olive, burnt orange, rust, mustard, and cognac are the shades you were born to wear.'},
+      {title:'Layer your tones',body:'Autumn types look incredible in layered warm neutrals — think camel coat over rust sweater over olive tee.'}
+    ]},
+  winter:{name:'Winter',subtitle:'Cool & Bold',icon:'❄️',
+    desc:"You are the most dramatic of all seasons — crisp, cool, and commanding ✨ You light up in high-contrast, jewel-toned color and pure icy whites. You were made to make an entrance.",
+    palette:[{name:'True Red',hex:'#D42B2B'},{name:'Royal Blue',hex:'#2950A8'},{name:'Deep Plum',hex:'#5A1F5A'},{name:'Ice Pink',hex:'#F0C8D8'},{name:'Emerald',hex:'#1A7A50'},{name:'Pure White',hex:'#F6F6F6'},{name:'Near Black',hex:'#1A1A1A'},{name:'Sapphire',hex:'#1E40AF'}],
+    avoid:[{hex:'#C9A24B',name:'Warm Gold'},{hex:'#D4956A',name:'Warm Peach'},{hex:'#8B9A6B',name:'Warm Olive'}],
+    tips:[
+      {title:'Go bold, go saturated',body:"You can wear the most vivid, saturated colors of all the seasons. Don't hold back — boldness is your superpower."},
+      {title:'Silver is your metal',body:'Silver, white gold, and platinum are your jewelry metals. They enhance your cool, crisp look.'},
+      {title:'Pure white, not cream',body:'Pure, stark white is your best neutral. Cream and ivory will look dingy next to your cool skin tones.'},
+      {title:'The classic combo',body:'Black and white together is one of your most iconic, powerful combinations. Lean into contrast.'},
+      {title:'Jewel tones only',body:'Clear, cool jewel tones — sapphire, emerald, ruby, amethyst — are your power colors. Avoid anything earthy or muddy.'}
+    ]}
+};
+
+/* ══════════════════════ STATE ══════════════════════ */
+let answers={}, current=0;
+
+/* ══════════════════════ localStorage ══════════════════════ */
+function saveResult(seasonKey){
+  try{ localStorage.setItem('bloom_season', seasonKey); }catch(e){}
+}
+function loadResult(){
+  try{ return localStorage.getItem('bloom_season'); }catch(e){ return null; }
+}
+function clearResult(){
+  try{ localStorage.removeItem('bloom_season'); }catch(e){}
+}
+
+/* Check on load */
+window.addEventListener('DOMContentLoaded', ()=>{
+  const saved = loadResult();
+  if(saved && seasons[saved]){
+    const d = seasons[saved];
+    const banner = document.getElementById('returning-banner');
+    document.getElementById('rb-icon').textContent = d.icon;
+    document.getElementById('rb-season').textContent = `Your season: ${d.name} ${d.subtitle}`;
+    banner.classList.add('show');
+    document.getElementById('rb-view-btn').onclick = ()=>{
+      document.getElementById('landing').style.display='none';
+      document.getElementById('result').style.display='block';
+      renderResult(saved);
+    };
+  }
+});
+
+/* ══════════════════════ QUIZ ══════════════════════ */
+function startQuiz(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  current=0; answers={}; renderQuestion();
+}
+
+function renderQuestion(){
+  const q = questions[current];
+  document.getElementById('step-badge').textContent = `Step ${current+1} of 3`;
+  document.getElementById('progress-fill').style.width = `${Math.round(((current+1)/3)*100)}%`;
+  [0,1,2].forEach(i=>{
+    const d = document.getElementById('dot'+i);
+    d.className = 'dot'+(i<current?' done':i===current?' active':'');
+  });
+  document.getElementById('question-container').innerHTML=`
+    <div class="question-card">
+      <div class="q-tag">${q.tag}</div>
+      <h2 class="q-title">${q.title}</h2>
+      <p class="q-sub">${q.sub}</p>
+      <div class="options-grid">
+        ${q.options.map(o=>`
+          <button class="opt-card ${answers[q.id]===o.value?'selected':''}" onclick="pick('${q.id}','${o.value}',this)">
+            <div class="opt-swatch" style="background:${o.swatch}"></div>
+            <span class="opt-emoji">${o.emoji}</span>
+            <span class="opt-title">${o.title}</span>
+            <p class="opt-sub">${o.sub}</p>
+          </button>`).join('')}
+      </div>
+      <div class="quiz-nav">
+        <button class="back-btn" onclick="goBack()" ${current===0?'disabled':''}>← Back</button>
+        <button class="next-btn" id="next-btn" onclick="${current<2?'nextQ()':'finishQuiz()'}" ${!answers[q.id]?'disabled':''}>
+          ${current<2?'Next Question →':'See My Palette 🎨'}
+        </button>
+      </div>
+    </div>`;
+}
+
+function pick(qId,value,el){
+  answers[qId]=value;
+  el.closest('.options-grid').querySelectorAll('.opt-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('next-btn').removeAttribute('disabled');
+}
+function nextQ(){ if(current<2){ current++; renderQuestion(); } }
+function goBack(){ if(current>0){ current--; renderQuestion(); } }
+
+function getSeason(){
+  const{undertone,contrast,depth}=answers;
+  if((undertone==='warm'||undertone==='olive')&&(depth==='light'||depth==='mixed')) return 'spring';
+  if((undertone==='warm'||undertone==='olive')&&(depth==='medium'||depth==='deep'))  return 'autumn';
+  if((undertone==='cool'||undertone==='neutral')&&(contrast==='low'||contrast==='medium')) return 'summer';
+  return 'winter';
+}
+
+function finishQuiz(){
+  const s = getSeason();
+  saveResult(s);
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('result').style.display='block';
+  window.scrollTo(0,0);
+  renderResult(s);
+}
+
+/* ══════════════════════ RESULT ══════════════════════ */
+function renderResult(seasonKey){
+  const d = seasons[seasonKey];
+  const topSwatches = d.palette.slice(0,6).map(sw=>`<div class="sc-swatch" style="background:${sw.hex}" title="${sw.name}"></div>`).join('');
+
+  document.getElementById('result-content').innerHTML=`
+    <div class="result-hero">
+      <span class="result-icon">${d.icon}</span>
+      <p class="result-eyebrow">Your color season is</p>
+      <h2 class="result-name">${d.name} <em>${d.subtitle}</em></h2>
+      <p class="result-desc">${d.desc}</p>
+    </div>
+
+    <div class="section-card" style="animation-delay:.1s">
+      <div class="section-label">Your Signature Palette</div>
+      <div class="palette-grid">
+        ${d.palette.map(sw=>`
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:${sw.hex}"></div>
+            <span class="swatch-name">${sw.name}</span>
+            <span class="swatch-hex">${sw.hex}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="section-card" style="animation-delay:.15s">
+      <div class="section-label">Colors to Avoid</div>
+      <div class="avoid-row">
+        ${d.avoid.map(av=>`
+          <div class="avoid-pill">
+            <div class="avoid-dot" style="background:${av.hex}"></div>
+            <span class="avoid-text">${av.name}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="section-card" style="animation-delay:.2s">
+      <div class="section-label">Styling Tips — tap to expand</div>
+      ${d.tips.map((t,i)=>`
+        <details class="tip-item">
+          <summary class="tip-header">
+            <span class="tip-dot">${i+1}</span>
+            <span class="tip-title">${t.title}</span>
+            <span class="tip-arrow">▾</span>
+          </summary>
+          <div class="tip-body">${t.body}</div>
+        </details>`).join('')}
+    </div>
+
+    <!-- Outfit Mood Board -->
+    <div class="mood-card" style="animation-delay:.3s">
+      <div class="section-label">Outfit Inspo Board 📌</div>
+      <div class="mood-grid" id="mood-grid-${seasonKey}">
+        ${moodBoard(seasonKey)}
+      </div>
+    </div>
+
+    <!-- Share Card -->
+    <div class="share-card" style="animation-delay:.35s">
+      <div class="section-label">Share Your Season</div>
+      <div class="share-preview">
+        <div class="share-canvas-wrap">
+          <div class="sc-icon">${d.icon}</div>
+          <div class="sc-title">I'm a <em>${d.name}</em></div>
+          <div class="sc-sub">${d.subtitle} · Color Season</div>
+          <div class="sc-swatches">${topSwatches}</div>
+          <div class="sc-brand">✿ bloom color quiz</div>
+        </div>
+      </div>
+      <div class="share-btns">
+        <button class="share-btn copy" onclick="copyResult('${seasonKey}')">📋 Copy Result</button>
+        <button class="share-btn tweet" onclick="tweetResult('${seasonKey}','${d.name}')">🐦 Share on X</button>
+      </div>
+    </div>
+
+    <div class="result-footer">
+      <button class="restart-btn" onclick="restart()">🔄 Retake the Quiz</button>
+    </div>`;
+}
+
+/* ══════════════════════ MOOD BOARD ══════════════════════ */
+const outfitPhotos = {
+  spring: [
+    { url:'https://i.pinimg.com/736x/2e/4a/8e/2e4a8e3b1c9d7f4a2b6e0c5d3f8a1b9e.jpg',
+      src:'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=700&q=80', label:'Warm Coral Tones' },
+    { src:'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80', label:'Golden Yellows' },
+    { src:'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&q=80', label:'Fresh & Peachy' },
+    { src:'https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=500&q=80', label:'Spring Florals' }
+  ],
+  summer: [
+    { src:'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=700&q=80', label:'Dusty Rose Vibes' },
+    { src:'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=500&q=80', label:'Lavender Haze' },
+    { src:'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=500&q=80', label:'Soft Blues' },
+    { src:'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=500&q=80', label:'Muted & Dreamy' }
+  ],
+  autumn: [
+    { src:'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=700&q=80', label:'Earthy Terracotta' },
+    { src:'https://images.unsplash.com/photo-1520013817300-1f4c1cb245ef?w=500&q=80', label:'Warm Rust Tones' },
+    { src:'https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?w=500&q=80', label:'Olive & Cognac' },
+    { src:'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&q=80', label:'Cozy Fall Layers' }
+  ],
+  winter: [
+    { src:'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=700&q=80', label:'Bold Jewel Tones' },
+    { src:'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500&q=80', label:'Classic Black & White' },
+    { src:'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=500&q=80', label:'Cool & Commanding' },
+    { src:'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80', label:'Crisp Contrast' }
+  ]
+};
+
+function moodBoard(seasonKey){
+  const imgs = outfitPhotos[seasonKey];
+  return imgs.map((img, i) => `
+    <div class="mood-img-wrap" id="mw-${seasonKey}-${i}">
+      <img class="mood-img" src="${img.src}"
+        alt="${img.label}"
+        loading="lazy"
+        onerror="this.parentElement.classList.add('errored');this.style.display='none';this.parentElement.innerHTML='🌸';"
+      />
+      <div class="mood-img-label">${img.label}</div>
+    </div>`).join('');
+}
+
+/* ══════════════════════ SHARE ══════════════════════ */
+function copyResult(seasonKey){
+  const d = seasons[seasonKey];
+  const topHex = d.palette.slice(0,4).map(p=>p.hex).join(' · ');
+  const text = `I just discovered I'm a ${d.name} season (${d.subtitle}) ${d.icon}\n\nMy palette: ${topHex}\n\nFind your color season at Bloom ✿`;
+
+  // Try modern clipboard API first (works on HTTPS / GitHub Pages)
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(()=> showToast('Copied to clipboard! 🎉'))
+      .catch(()=> fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text){
+  // Works locally on file:// too
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('Copied to clipboard! 🎉');
+  } catch(e){
+    showToast('Press Ctrl+C / Cmd+C to copy!');
+  }
+  document.body.removeChild(ta);
+}
+
+function tweetResult(seasonKey, seasonName){
+  const d = seasons[seasonKey];
+  const text = encodeURIComponent(`Just discovered I'm a ${seasonName} color season ${d.icon} — ${d.subtitle}! ✿ #ColorSeason #Bloom`);
+  window.open(`https://twitter.com/intent/tweet?text=${text}`,'_blank');
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+/* ══════════════════════ RESTART ══════════════════════ */
+function restart(){
+  clearResult();
+  document.getElementById('result').style.display='none';
+  const banner = document.getElementById('returning-banner');
+  banner.classList.remove('show');
+  document.getElementById('landing').style.display='flex';
+  answers={}; current=0;
+}
+</script>
+</body>
+</html>
